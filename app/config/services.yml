@@ -4,10 +4,15 @@ parameters:
     #parameter_name: value
 
 services:
+
+    app.subscriber.view.coroutine:
+        class: AppBundle\CoroutineViewListener
+        tags:
+            - { name: kernel.event_subscriber }
+
     app.artax:
         class: Amp\Artax\DefaultClient
 
-    app.subscriber.view.generator:
-        class: AppBundle\GeneratorViewListener
-        tags:
-            - { name: kernel.event_subscriber }
+    app.db:
+        class: Amp\Mysql\Pool
+        arguments: [ '@="host="~parameter("database_host")~";user="~parameter("database_user")~";pass="~parameter("database_password")~";db="~parameter("database_name")']

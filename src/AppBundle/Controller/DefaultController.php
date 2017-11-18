@@ -16,29 +16,52 @@ class DefaultController extends Controller
     public function indexAction(Request $request)
     {
         $results = yield [
-            $this->getResult(1, 1),
-            $this->getResult(1, 2),
-            $this->getResult(1, 3),
+            $this->fetch('a', 1),
+            $this->fetch('b', 1),
+            $this->fetch('c', 1),
         ];
         $sum = array_reduce(
             $results,
             function ($acc, $result) {return $acc + $result;}
         );
 
-        $result = yield $this->getResult(0, $sum * 2);
+        $result = yield $this->fetchFromWeb($sum * 2);
 
         return $this->render('default/index.html.twig', array(
-            'content' => $result
+            'content' => $result,
         ));
     }
 
-    protected function getResult($delay, $param): Promise {
+    protected function fetch($name, $delay = 0): Promise
+    {
+        return \Amp\call(function () use ($name, $delay) {
+            $param = yield $this->fetchFromDb($name, $delay);
+            return $this->fetchFromWeb($param, $delay);
+        });
+    }
+
+    protected function fetchFromDb($name, $delay = 0): Promise
+    {
+        return \Amp\call(function () use ($name, $delay) {
+            $db = $this->get('app.db');
+
+            /** @var $results \Amp\Mysql\ResultSet */
+            $query = yield $db->prepare(
+                "SELECT value, SLEEP(:delay) FROM tmp WHERE name = :name",
+                ['delay' => $delay, 'name' => $name]
+            );
+            $row = yield $query->fetchAssoc();
+
+            return $row['value'];
+        });
+    }
+
+    protected function fetchFromWeb($param, $delay = 0): Promise {
         return \Amp\call(function () use ($delay, $param) {
             $client = $this->get('app.artax');
+
             /** @var $response Response */
-            $response = yield $client->request(
-                "http://httpbin.org/delay/$delay?result=$param"
-            );
+            $response = yield $client->request("http://httpbin.org/delay/$delay?result=$param");
             $body = yield $response->getBody()->read();
             $data = json_decode($body, true);
 

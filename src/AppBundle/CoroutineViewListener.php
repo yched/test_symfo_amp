@@ -7,15 +7,15 @@
 namespace AppBundle;
 
 use Amp\Coroutine;
-use Amp\Loop;
+use Amp\Promise;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- *
+ * Allows controllers to return generators, and execute them as Amphp coroutines.
  */
-class GeneratorViewListener implements EventSubscriberInterface
+class CoroutineViewListener implements EventSubscriberInterface
 {
 
     public function onRespond(GetResponseForControllerResultEvent $event)
@@ -23,18 +23,15 @@ class GeneratorViewListener implements EventSubscriberInterface
         $result = $event->getControllerResult();
 
         if ($result instanceof \Generator) {
-            \Amp\asyncCall(function () use ($result, &$return) {
-                $return = yield (new Coroutine($result));
-                Loop::stop();
-            });
-            Loop::run();
-            $event->setResponse($return);
+            $result = Promise\wait(new Coroutine($result));
+            $event->setResponse($result);
+        }
+        else if ($result instanceof Promise) {
+            $result = Promise\wait($result);
+            $event->setResponse($result);
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function getSubscribedEvents()
     {
         $events[KernelEvents::VIEW] = ['onRespond', -10];
