@@ -18,14 +18,11 @@ class DefaultController extends Controller
      */
     public function indexAction(Request $request)
     {
-        $return = null;
-        \Amp\asyncCall(function () use (&$return) {
-            $logger = $this->get('logger');
-            $logger->info('runs');
+        return $this->asyncController(function () {
             $results = yield all([
-                $this->getResult(1, 1),
-                $this->getResult(1, 2),
-                $this->getResult(1, 3),
+                $this->getResult(2, 1),
+                $this->getResult(2, 2),
+                $this->getResult(2, 3),
             ]);
             $sum = array_reduce(
                 $results,
@@ -33,9 +30,16 @@ class DefaultController extends Controller
                 0
             );
             $result = yield $this->getResult(0, $sum * 2);
-            $return = $this->render('default/index.html.twig', array(
+            return $this->render('default/index.html.twig', array(
                 'content' => $result
             ));
+        });
+    }
+
+    protected function asyncController($callback) {
+        $return = null;
+        \Amp\asyncCall(function () use ($callback, &$return) {
+            $return = yield \Amp\call($callback);
             Loop::stop();
         });
         Loop::run();
