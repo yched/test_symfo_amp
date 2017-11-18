@@ -7,6 +7,7 @@ services:
     app.artax:
         class: Amp\Artax\DefaultClient
 
-    #service_name:
-    #    class: AppBundle\Directory\ClassName
-    #    arguments: ['@another_service_name', 'plain_value', '%parameter_name%']
+    app.subscriber.view.generator:
+        class: AppBundle\GeneratorViewListener
+        tags:
+            - { name: kernel.event_subscriber }
