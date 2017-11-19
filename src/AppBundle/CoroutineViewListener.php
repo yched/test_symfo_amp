@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Allows controllers to return generators, and execute them as Amphp coroutines.
+ * Allows controllers to return generators or coroutines, and execute them through the Amphp event loop.
  */
 class CoroutineViewListener implements EventSubscriberInterface
 {
