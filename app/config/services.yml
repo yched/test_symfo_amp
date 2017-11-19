@@ -5,8 +5,9 @@ parameters:
 
 services:
 
-    app.subscriber.view.coroutine:
-        class: AppBundle\CoroutineViewListener
+    app.subscriber.controller.coroutine:
+        class: AppBundle\CoroutineControllerListener
+        arguments: [ '@controller_resolver']
         tags:
             - { name: kernel.event_subscriber }
 

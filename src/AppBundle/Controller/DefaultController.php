@@ -38,7 +38,7 @@ class DefaultController extends Controller
     {
         $result = 0;
         for ($i = 0; $i < $count; $i++) {
-            $result += yield new Success($i);
+            $result += yield new Success(1);
         }
 
         return $this->render('default/index.html.twig', ['content' => $result]);
@@ -51,7 +51,7 @@ class DefaultController extends Controller
     {
         $result = 0;
         for ($i = 0; $i < $count; $i++) {
-            $result += $i;
+            $result += 1;
         }
 
         return $this->render('default/index.html.twig', ['content' => $result]);
@@ -122,7 +122,7 @@ class DefaultController extends Controller
             $client = $this->get('app.artax');
 
             /** @var $response Response */
-//            $response = yield $client->request("http://httpbin.org/delay/$delay?result=$param");
+            $response = yield $client->request("http://httpbin.org/delay/$delay?result=$param");
             $body = yield $response->getBody()->read();
             $data = json_decode($body, true);
 
