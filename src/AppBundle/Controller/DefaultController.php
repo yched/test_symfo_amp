@@ -17,9 +17,9 @@ class DefaultController extends Controller
     public function exampleAsyncAction(Request $request)
     {
         $results = yield [
-            $this->fetchAsync('a', 1),
-            $this->fetchAsync('b', 1),
-            $this->fetchAsync('c', 1),
+            $this->somethingAsync('a', 1),
+            $this->somethingAsync('b', 1),
+            $this->somethingAsync('c', 1),
         ];
         $sum = array_reduce(
             $results,
@@ -64,7 +64,7 @@ class DefaultController extends Controller
     {
         $result = 0;
         for ($i = 0; $i < $count; $i++) {
-            $result += yield $this->fetchFromDbAsync('a');
+            $result += yield $this->fetchFromDbAsync('a', 0.003);
         }
 
         return $this->render('default/index.html.twig', ['content' => $result]);
@@ -77,13 +77,77 @@ class DefaultController extends Controller
     {
         $result = 0;
         for ($i = 0; $i < $count; $i++) {
-            $result += $this->fetchFromDb('a');
+            $result += $this->fetchFromDb('a', 0.003);
         }
 
         return $this->render('default/index.html.twig', ['content' => $result]);
     }
 
-    protected function fetchAsync($name, $delay = 0): Promise
+
+
+
+    protected function fetchFromDb($name, $delay = 0)
+    {
+        $db = $this->get('database_connection');
+        $stopwatch = $this->get('debug.stopwatch');
+
+        $stopwatchName = $this->uniqueStopwatchName("select $name");
+        $stopwatch->start($stopwatchName);
+
+        $row = $db->fetchAssoc(
+            "SELECT value, :rand, SLEEP(:delay) FROM tmp WHERE name = :name",
+            ['rand' => rand(), 'delay' => $delay, 'name' => $name]
+        );
+
+        $stopwatch->stop($stopwatchName);
+
+        return $row['value'];
+    }
+
+    protected function fetchFromDbAsync($name, $delay = 0): Promise
+    {
+        return \Amp\call(function () use ($name, $delay) {
+            $db = $this->get('app.db');
+            $stopwatch = $this->get('debug.stopwatch');
+
+            $stopwatchName = $this->uniqueStopwatchName("select $name");
+            $stopwatch->start($stopwatchName);
+
+            /** @var $results \Amp\Mysql\ResultSet */
+            $results = yield $db->query(sprintf(
+                "SELECT value, %f, SLEEP(%f) FROM tmp WHERE name = '%s'",
+                rand(), $delay, $name
+            ));
+            $row = yield $results->fetchAssoc();
+
+            $stopwatch->stop($stopwatchName);
+
+            return $row['value'];
+        });
+    }
+
+    protected function fetchFromWebAsync($param, $delay = 0): Promise
+    {
+        return \Amp\call(function () use ($delay, $param) {
+            $client = $this->get('app.artax');
+            $stopwatch = $this->get('debug.stopwatch');
+
+            $url = "http://httpbin.org/delay/$delay?result=$param";
+            $stopwatchName = $this->uniqueStopwatchName($url);
+            $stopwatch->start($stopwatchName);
+
+            /** @var $response Response */
+            $response = yield $client->request($url);
+            $body = yield $response->getBody()->read();
+            $data = json_decode($body, true);
+
+            $stopwatch->stop($stopwatchName);
+
+            return $data['args']['result'];
+        });
+    }
+
+    protected function somethingAsync($name, $delay = 0): Promise
     {
         return \Amp\call(function () use ($name, $delay) {
             $param = yield $this->fetchFromDbAsync($name, $delay);
@@ -91,42 +155,14 @@ class DefaultController extends Controller
         });
     }
 
-    protected function fetchFromDbAsync($name, $delay = 0): Promise
+    protected function uniqueStopwatchName($name)
     {
-        return \Amp\call(function () use ($name, $delay) {
-            $db = $this->get('app.db');
+        static $counters = [];
 
-            /** @var $results \Amp\Mysql\ResultSet */
-            $query = yield $db->prepare(
-                "SELECT value, :rand, SLEEP(:delay) FROM tmp WHERE name = :name",
-                ['delay' => $delay, 'name' => $name, 'rand' => rand()]
-            );
-            $row = yield $query->fetchAssoc();
+        $counters += [$name => 0];
+        $uniqueName = $name . ($counters[$name] ? " ($counters[$name])" : '');
+        $counters[$name]++;
 
-            return $row['value'];
-        });
-    }
-
-    protected function fetchFromDb($name, $delay = 0)
-    {
-        $db = $this->get('database_connection');
-        $row = $db->fetchAssoc(
-            "SELECT value, :rand, SLEEP(:delay) FROM tmp WHERE name = :name",
-            ['delay' => $delay, 'name' => $name, 'rand' => rand()]
-        );
-        return $row['value'];
-    }
-
-    protected function fetchFromWebAsync($param, $delay = 0): Promise {
-        return \Amp\call(function () use ($delay, $param) {
-            $client = $this->get('app.artax');
-
-            /** @var $response Response */
-            $response = yield $client->request("http://httpbin.org/delay/$delay?result=$param");
-            $body = yield $response->getBody()->read();
-            $data = json_decode($body, true);
-
-            return $data['args']['result'];
-        });
+        return $uniqueName;
     }
 }
