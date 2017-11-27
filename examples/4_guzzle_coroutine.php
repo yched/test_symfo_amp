@@ -2,8 +2,8 @@
 
 // composer require guzzlehttp/guzzle
 include ('../vendor/autoload.php');
+include ('./common.php');
 
-use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Psr7\Request;
 
@@ -11,12 +11,10 @@ $promises = [
     'task1' => taskAsync('task 1'),
     'task2' => taskAsync('task 2'),
 ];
-$results = Promise\settle($promises)->wait();
+$results = Promise\all($promises)->wait();
 
 println('-----------');
-array_walk($results, function ($result, $key) {
-    println("result $key : $result[value]");
-});
+var_export($results);
 
 /**
  * @return \GuzzleHttp\Promise\PromiseInterface
@@ -48,19 +46,7 @@ function getResultAsync($name, $value, $delay) {
         /* @var $res \GuzzleHttp\Psr7\Response */
         $res = yield client()->sendAsync($req);
         $data = json_decode($res->getBody()->getContents(), true);
+
         yield $data['args']['value'];
     });
-}
-
-/**
- * @return \GuzzleHttp\Client
- */
-function client() {
-    static $client;
-    $client = $client ?? new Client();
-    return $client;
-}
-
-function println($string) {
-    echo "$string\n";
 }
