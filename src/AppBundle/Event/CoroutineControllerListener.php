@@ -4,7 +4,7 @@
  * Contains \AppBundle\ControllerListener.
  */
 
-namespace AppBundle;
+namespace AppBundle\Event;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;

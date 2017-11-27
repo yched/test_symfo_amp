@@ -6,7 +6,7 @@ parameters:
 services:
 
     app.subscriber.controller.coroutine:
-        class: AppBundle\CoroutineControllerListener
+        class: AppBundle\Event\CoroutineControllerListener
         arguments: [ '@controller_resolver']
         tags:
             - { name: kernel.event_subscriber }
