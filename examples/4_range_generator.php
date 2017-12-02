@@ -1,6 +1,6 @@
 <?php
 
-function range_generator($start, $end, $step) {
+function range_generator($start, $end, $step = 1) {
     for ($i = $start; $i <= $end; $i += $step) {
         yield $i;
     }
