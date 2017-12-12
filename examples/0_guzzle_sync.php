@@ -37,9 +37,11 @@ function task($name) {
  * @return int
  */
 function getResult($name, $value, $delay) {
+    // Exemple : curl "http://httpbin.org/delay/1?foo=bar&zoo=glu"
     $req = new Request('GET', "http://httpbin.org/delay/$delay?name=$name&value=$value");
-    /* @var $res \GuzzleHttp\Psr7\Response */
+
     $res = client()->send($req);
     $data = json_decode($res->getBody()->getContents(), true);
+
     return $data['args']['value'];
 }
