@@ -21,6 +21,7 @@
         "amphp/amp": "^2.0",
         "amphp/artax": "^3.0",
         "amphp/mysql": "^0.2.3",
+        "amphp/parallel-functions": "@dev",
         "doctrine/doctrine-bundle": "~1.4",
         "doctrine/orm": "^2.4.8",
         "guzzlehttp/guzzle": "^6.3",
