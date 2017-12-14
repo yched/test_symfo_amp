@@ -2,9 +2,6 @@
 
 namespace AppBundle\Controller;
 
-use Amp\Artax\Response;
-use Amp\Promise;
-use Amp\Success;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
@@ -15,22 +12,27 @@ class DefaultController extends Controller
      */
     public function exampleAsyncAction()
     {
-        $results = yield [
-            $this->somethingAsync('a', 1),
-            $this->somethingAsync('b', 1),
-            $this->somethingAsync('c', 1),
-        ];
-        $sum = array_reduce(
-            $results,
-            function ($acc, $result) {return $acc + $result;}
-        );
+        $promise = \Amp\call(function () {
+            $results = yield [
+              $this->somethingAsync('a', 1),
+              $this->somethingAsync('b', 1),
+              $this->somethingAsync('c', 1),
+            ];
+            $sum = array_reduce(
+              $results,
+              function ($acc, $result) {return $acc + $result;}
+            );
 
-        $result = yield $this->fetchFromWebAsync($sum * 2);
+            $result = yield $this->fetchFromWebAsync($sum * 2);
+
+            return $result;
+        });
+        $result = \Amp\Promise\wait($promise);
 
         return $this->render('default/index.html.twig', ['content' => $result]);
     }
 
-    protected function somethingAsync($name, $delay = 0): Promise
+    protected function somethingAsync($name, $delay = 0): \Amp\Promise
     {
         return \Amp\call(function () use ($name, $delay) {
             $param = yield $this->fetchFromDbAsync($name, $delay);
@@ -38,7 +40,7 @@ class DefaultController extends Controller
         });
     }
 
-    protected function fetchFromDbAsync($name, $delay = 0): Promise
+    protected function fetchFromDbAsync($name, $delay = 0): \Amp\Promise
     {
         return \Amp\call(function () use ($name, $delay) {
             $db = $this->get('app.db');
@@ -60,7 +62,7 @@ class DefaultController extends Controller
         });
     }
 
-    protected function fetchFromWebAsync($param, $delay = 0): Promise
+    protected function fetchFromWebAsync($param, $delay = 0): \Amp\Promise
     {
         return \Amp\call(function () use ($delay, $param) {
             $client = $this->get('app.artax');
@@ -70,7 +72,7 @@ class DefaultController extends Controller
             $stopwatchName = $this->uniqueStopwatchName($url);
             $stopwatch->start($stopwatchName);
 
-            /** @var $response Response */
+            /** @var $response \Amp\Artax\Response */
             $response = yield $client->request($url);
             $body = yield $response->getBody()->read();
             $data = json_decode($body, true);
@@ -91,7 +93,7 @@ class DefaultController extends Controller
     {
         $result = 0;
         for ($i = 0; $i < $count; $i++) {
-            $result += yield new Success(1);
+            $result += yield new \Amp\Success(1);
         }
 
         return $this->render('default/index.html.twig', ['content' => $result]);
