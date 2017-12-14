@@ -7,14 +7,13 @@ use Amp\Promise;
 use Amp\Success;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Request;
 
 class DefaultController extends Controller
 {
     /**
      * @Route("/", name="homepage")
      */
-    public function exampleAsyncAction(Request $request)
+    public function exampleAsyncAction()
     {
         $results = yield [
             $this->somethingAsync('a', 1),
@@ -31,77 +30,12 @@ class DefaultController extends Controller
         return $this->render('default/index.html.twig', ['content' => $result]);
     }
 
-    /**
-     * @Route("/bench_async/{count}", name="bench_async")
-     */
-    public function benchAsyncAction($count = 1, Request $request)
+    protected function somethingAsync($name, $delay = 0): Promise
     {
-        $result = 0;
-        for ($i = 0; $i < $count; $i++) {
-            $result += yield new Success(1);
-        }
-
-        return $this->render('default/index.html.twig', ['content' => $result]);
-    }
-
-    /**
-     * @Route("/bench/{count}", name="bench")
-     */
-    public function benchAction($count = 1, Request $request)
-    {
-        $result = 0;
-        for ($i = 0; $i < $count; $i++) {
-            $result += 1;
-        }
-
-        return $this->render('default/index.html.twig', ['content' => $result]);
-    }
-
-    /**
-     * @Route("/db_async/{count}", name="db_async")
-     */
-    public function dbAsyncAction($count = 1, Request $request)
-    {
-        $result = 0;
-        for ($i = 0; $i < $count; $i++) {
-            $result += yield $this->fetchFromDbAsync('a', 0.003);
-        }
-
-        return $this->render('default/index.html.twig', ['content' => $result]);
-    }
-
-    /**
-     * @Route("/db/{count}", name="db")
-     */
-    public function dbAction($count = 1, Request $request)
-    {
-        $result = 0;
-        for ($i = 0; $i < $count; $i++) {
-            $result += $this->fetchFromDb('a', 0.003);
-        }
-
-        return $this->render('default/index.html.twig', ['content' => $result]);
-    }
-
-
-
-
-    protected function fetchFromDb($name, $delay = 0)
-    {
-        $db = $this->get('database_connection');
-        $stopwatch = $this->get('debug.stopwatch');
-
-        $stopwatchName = $this->uniqueStopwatchName("select $name");
-        $stopwatch->start($stopwatchName);
-
-        $row = $db->fetchAssoc(
-            "SELECT value, :rand, SLEEP(:delay) FROM tmp WHERE name = :name",
-            ['rand' => rand(), 'delay' => $delay, 'name' => $name]
-        );
-
-        $stopwatch->stop($stopwatchName);
-
-        return $row['value'];
+        return \Amp\call(function () use ($name, $delay) {
+            $param = yield $this->fetchFromDbAsync($name, $delay);
+            return $this->fetchFromWebAsync($param, $delay);
+        });
     }
 
     protected function fetchFromDbAsync($name, $delay = 0): Promise
@@ -147,12 +81,77 @@ class DefaultController extends Controller
         });
     }
 
-    protected function somethingAsync($name, $delay = 0): Promise
+
+
+
+    /**
+     * @Route("/bench_async/{count}", name="bench_async")
+     */
+    public function benchAsyncAction($count = 1)
     {
-        return \Amp\call(function () use ($name, $delay) {
-            $param = yield $this->fetchFromDbAsync($name, $delay);
-            return $this->fetchFromWebAsync($param, $delay);
-        });
+        $result = 0;
+        for ($i = 0; $i < $count; $i++) {
+            $result += yield new Success(1);
+        }
+
+        return $this->render('default/index.html.twig', ['content' => $result]);
+    }
+
+    /**
+     * @Route("/bench/{count}", name="bench")
+     */
+    public function benchAction($count = 1)
+    {
+        $result = 0;
+        for ($i = 0; $i < $count; $i++) {
+            $result += 1;
+        }
+
+        return $this->render('default/index.html.twig', ['content' => $result]);
+    }
+
+    /**
+     * @Route("/db_async/{count}", name="db_async")
+     */
+    public function dbAsyncAction($count = 1)
+    {
+        $result = 0;
+        for ($i = 0; $i < $count; $i++) {
+            $result += yield $this->fetchFromDbAsync('a', 0.003);
+        }
+
+        return $this->render('default/index.html.twig', ['content' => $result]);
+    }
+
+    /**
+     * @Route("/db/{count}", name="db")
+     */
+    public function dbAction($count = 1)
+    {
+        $result = 0;
+        for ($i = 0; $i < $count; $i++) {
+            $result += $this->fetchFromDb('a', 0.003);
+        }
+
+        return $this->render('default/index.html.twig', ['content' => $result]);
+    }
+
+    protected function fetchFromDb($name, $delay = 0)
+    {
+        $db = $this->get('database_connection');
+        $stopwatch = $this->get('debug.stopwatch');
+
+        $stopwatchName = $this->uniqueStopwatchName("select $name");
+        $stopwatch->start($stopwatchName);
+
+        $row = $db->fetchAssoc(
+          "SELECT value, :rand, SLEEP(:delay) FROM tmp WHERE name = :name",
+          ['rand' => rand(), 'delay' => $delay, 'name' => $name]
+        );
+
+        $stopwatch->stop($stopwatchName);
+
+        return $row['value'];
     }
 
     protected function uniqueStopwatchName($name)
