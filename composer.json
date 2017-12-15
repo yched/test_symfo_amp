@@ -16,6 +16,16 @@
             "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php"
         ]
     },
+    "repositories": {
+        "figaro_common": {
+            "type": "vcs",
+            "url": "git@fig_lib_repo:figtech_admin/lib-figaro-common.git"
+        },
+        "fidji_article": {
+            "type": "vcs",
+            "url": "git@fig_lib_repo:figtech_admin/lib-fidji-article.git"
+        }
+    },
     "require": {
         "php": ">=5.3.9",
         "amphp/amp": "^2.0",
@@ -24,6 +34,7 @@
         "amphp/parallel-functions": "@dev",
         "doctrine/doctrine-bundle": "~1.4",
         "doctrine/orm": "^2.4.8",
+        "figaro/fidji-article": "^1.9",
         "guzzlehttp/guzzle": "^6.3",
         "incenteev/composer-parameter-handler": "~2.0",
         "sensio/distribution-bundle": "~4.0",

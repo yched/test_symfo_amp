@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e6201a3e9b05f67e026afcc63bc151b3",
+    "content-hash": "35e7dc6ea58d19bf011c72b07e08a73d",
     "packages": [
         {
             "name": "amphp/amp",
@@ -1535,6 +1535,85 @@
                 "orm"
             ],
             "time": "2015-08-31T13:19:01+00:00"
+        },
+        {
+            "name": "figaro/common",
+            "version": "v1.5.0",
+            "source": {
+                "type": "git",
+                "url": "git@fig_lib_repo:figtech_admin/lib-figaro-common.git",
+                "reference": "51d06b8de14a04aa7d16b763ed5aa06f949e689b"
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.2.1",
+                "guzzlehttp/promises": "^1.3.1",
+                "php": ">=5.5.0",
+                "psr/log": "^1.0"
+            },
+            "require-dev": {
+                "ext-xmlrpc": "*",
+                "phpunit/phpunit": "^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Figaro\\Common\\": "src"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Figaro\\Common\\Tests\\": "tests"
+                }
+            },
+            "description": "Lib Figaro Common",
+            "homepage": "https://bitbucket.org/figtech_admin/lib-figaro-common",
+            "time": "2017-11-15T17:53:20+00:00"
+        },
+        {
+            "name": "figaro/fidji-article",
+            "version": "v1.9.0",
+            "source": {
+                "type": "git",
+                "url": "git@fig_lib_repo:figtech_admin/lib-fidji-article.git",
+                "reference": "11f3d40467025da4a7be5e67bbf20441bb987765"
+            },
+            "require": {
+                "figaro/common": "^1.5",
+                "guzzlehttp/promises": "^1.3.1",
+                "php": ">=5.5.0",
+                "psr/log": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.0"
+            },
+            "suggest": {
+                "figaro/fidji-image": "La librairie propose des classes s'intégrant avec le retaillage d'images via le service Fidji Media (voir https://bitbucket.org/figtech_admin/lib-fidji-image)",
+                "symfony/templating": "La librairie propose des classes s'intégrant avec un moteur de template"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Figaro\\Fidji\\Article\\": "src"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Figaro\\Fidji\\Article\\Tests\\": "tests"
+                }
+            },
+            "description": "Lib de ommunication avec l'API Article de Fidji",
+            "homepage": "https://bitbucket.org/figtech_admin/lib-fidji-article",
+            "time": "2017-12-14T11:50:50+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
