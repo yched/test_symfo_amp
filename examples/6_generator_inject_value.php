@@ -11,7 +11,6 @@ function my_generator($count, $seed = 0) {
 
 $it = my_generator(10);
 $count = 0;
-$it->send(rand(1, 5));
 while ($it->valid()) {
     println("$count : generator yielded " . $it->current());
     if ($count !== 3) {

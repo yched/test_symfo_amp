@@ -6,7 +6,7 @@ function range_generator($start, $end, $step = 1) {
     }
 }
 
-$range = range_generator(5, 10, 2);
+$range = range_generator(5, 10, 2); // instanceof \Generator
 foreach ($range as $key => $value) {
     echo "$key => $value" . PHP_EOL;
 }
