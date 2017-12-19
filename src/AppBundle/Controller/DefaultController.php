@@ -12,22 +12,17 @@ class DefaultController extends Controller
      */
     public function exampleAsyncAction()
     {
-        $promise = \Amp\call(function () {
-            $results = yield [
-              $this->somethingAsync('a', 1),
-              $this->somethingAsync('b', 1),
-              $this->somethingAsync('c', 1),
-            ];
-            $sum = array_reduce(
-              $results,
-              function ($acc, $result) {return $acc + $result;}
-            );
+        $results = yield [
+          $this->somethingAsync('a', 1),
+          $this->somethingAsync('b', 1),
+          $this->somethingAsync('c', 1),
+        ];
+        $sum = array_reduce(
+          $results,
+          function ($acc, $result) {return $acc + $result;}
+        );
 
-            $result = yield $this->fetchFromWebAsync($sum * 2);
-
-            return $result;
-        });
-        $result = \Amp\Promise\wait($promise);
+        $result = yield $this->fetchFromWebAsync($sum * 2);
 
         return $this->render('default/index.html.twig', ['content' => $result]);
     }
