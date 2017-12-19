@@ -16,4 +16,5 @@ services:
 
     app.db:
         class: Amp\Mysql\Pool
+        factory: Amp\Mysql\pool
         arguments: [ '@="host="~parameter("database_host")~";user="~parameter("database_user")~";pass="~parameter("database_password")~";db="~parameter("database_name")']

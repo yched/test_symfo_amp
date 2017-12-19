@@ -45,11 +45,17 @@ class DefaultController extends Controller
             $stopwatch->start($stopwatchName);
 
             /** @var $results \Amp\Mysql\ResultSet */
-            $results = yield $db->query(sprintf(
-                "SELECT value, %f, SLEEP(%f) FROM tmp WHERE name = '%s'",
-                rand(), $delay, $name
-            ));
-            $row = yield $results->fetchAssoc();
+            $results = yield $db->execute(
+                "SELECT value, :rand, SLEEP(:delay) FROM tmp WHERE name = :name",
+                ['rand' => rand(), 'delay' => $delay, 'name' => $name]
+            );
+//            $results = yield $db->query(sprintf(
+//                "SELECT value, %f, SLEEP(%f) FROM tmp WHERE name = '%s'",
+//                rand(), $delay, $name
+//            ));
+
+            yield $results->advance();
+            $row = $results->getCurrent();
 
             $stopwatch->stop($stopwatchName);
 
