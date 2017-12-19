@@ -16,16 +16,6 @@
             "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php"
         ]
     },
-    "repositories": {
-        "figaro_common": {
-            "type": "vcs",
-            "url": "git@fig_lib_repo:figtech_admin/lib-figaro-common.git"
-        },
-        "fidji_article": {
-            "type": "vcs",
-            "url": "git@fig_lib_repo:figtech_admin/lib-fidji-article.git"
-        }
-    },
     "require": {
         "php": ">=5.3.9",
         "amphp/amp": "^2.0",
