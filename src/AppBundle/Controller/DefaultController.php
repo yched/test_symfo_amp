@@ -12,17 +12,26 @@ class DefaultController extends Controller
      */
     public function exampleAsyncAction()
     {
-        $results = yield [
-          $this->somethingAsync('a', 1),
-          $this->somethingAsync('b', 1),
-          $this->somethingAsync('c', 1),
-        ];
-        $sum = array_reduce(
-          $results,
-          function ($acc, $result) {return $acc + $result;}
-        );
-
-        $result = yield $this->fetchFromWebAsync($sum * 2);
+        $promise = \Amp\coroutine(function () {
+            $delay = 2;
+            $sync = \Amp\ParallelFunctions\parallel(function () use ($delay) {
+                sleep($delay);
+                return $delay * $delay;
+            });
+            return $sync();
+        })();
+        $result = \Amp\Promise\wait($promise);
+//        $results = yield [
+//          $this->somethingAsync('a', 1),
+//          $this->somethingAsync('b', 1),
+//          $this->somethingAsync('c', 1),
+//        ];
+//        $sum = array_reduce(
+//          $results,
+//          function ($acc, $result) {return $acc + $result;}
+//        );
+//
+//        $result = yield $this->fetchFromWebAsync($sum * 2);
 
         return $this->render('default/index.html.twig', ['content' => $result]);
     }
@@ -31,7 +40,7 @@ class DefaultController extends Controller
     {
         return \Amp\call(function () use ($name, $delay) {
             $param = yield $this->fetchFromDbAsync($name, $delay);
-            yield $this->somethingSync($delay);
+            $value = yield $this->somethingSync($delay);
             return $this->fetchFromWebAsync($param, $delay);
         });
     }
@@ -87,14 +96,14 @@ class DefaultController extends Controller
 
     protected function somethingSync($delay = 0) : \Amp\Promise
     {
-        return \Amp\ParallelFunctions\parallel(function () use ($delay) {
+        $async = \Amp\ParallelFunctions\parallel(function () use ($delay) {
             sleep($delay);
             return $delay * $delay;
-        })();
-//        return \Amp\call(function () use ($delay) {
-//            return \Amp\ParallelFunctions\parallelMap([$delay], function ($time) {
-//                \sleep($time); // a blocking function call, might also do blocking I/O here
-//            });
+        });
+        return $async();
+//        return \Amp\ParallelFunctions\parallelMap([$delay], function ($time) {
+//            \sleep($time);
+//            return $time * $time;
 //        });
     }
 
