@@ -31,6 +31,7 @@ class DefaultController extends Controller
     {
         return \Amp\call(function () use ($name, $delay) {
             $param = yield $this->fetchFromDbAsync($name, $delay);
+            yield $this->somethingSync($delay);
             return $this->fetchFromWebAsync($param, $delay);
         });
     }
@@ -65,7 +66,7 @@ class DefaultController extends Controller
 
     protected function fetchFromWebAsync($param, $delay = 0): \Amp\Promise
     {
-        return \Amp\call(function () use ($delay, $param) {
+        return \Amp\call(function () use ($param, $delay) {
             $client = $this->get('app.artax');
             $stopwatch = $this->get('debug.stopwatch');
 
@@ -82,6 +83,19 @@ class DefaultController extends Controller
 
             return $data['args']['result'];
         });
+    }
+
+    protected function somethingSync($delay = 0) : \Amp\Promise
+    {
+        return \Amp\ParallelFunctions\parallel(function () use ($delay) {
+            sleep($delay);
+            return $delay * $delay;
+        })();
+//        return \Amp\call(function () use ($delay) {
+//            return \Amp\ParallelFunctions\parallelMap([$delay], function ($time) {
+//                \sleep($time); // a blocking function call, might also do blocking I/O here
+//            });
+//        });
     }
 
 
